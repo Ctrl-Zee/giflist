@@ -1,0 +1,15 @@
+<ion-list lines="none">
+  <div class="gif" *ngFor="let gif of gifs; trackBy: trackByFn">
+    <ion-item button detail="false">
+      <video
+        playsinline
+        poster="none"
+        preload="none"
+        [loop]="true"
+        [muted]="true"
+        [src]="gif.src"
+      ></video>
+      <ion-label>{{ gif.title }}</ion-label>
+    </ion-item>
+  </div>
+</ion-list>
