@@ -1,8 +1,10 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  EventEmitter,
   Input,
   OnInit,
+  Output,
 } from '@angular/core';
 import { Gif } from 'src/app/shared/interfaces';
 
@@ -14,6 +16,8 @@ import { Gif } from 'src/app/shared/interfaces';
 })
 export class GifListPage implements OnInit {
   @Input() gifs!: Gif[];
+  @Output() gifLoadStart = new EventEmitter<string>();
+  @Output() gifLoadComplete = new EventEmitter<string>();
 
   trackByFn(index: number, gif: Gif) {
     return gif.permalink;
@@ -22,4 +26,27 @@ export class GifListPage implements OnInit {
   constructor() {}
 
   ngOnInit() {}
+
+  playVideo(ev: Event, gif: Gif) {
+    const video = ev.target as HTMLVideoElement;
+    if (video.readyState === 4) {
+      if (video.paused) {
+        video.play();
+      } else {
+        video.pause();
+      }
+    } else {
+      if (video.getAttribute('data-event-loaddeddata') !== 'true') {
+        this.gifLoadStart.emit(gif.permalink);
+        video.load();
+        const handleVideoLoaded = async () => {
+          this.gifLoadComplete.emit(gif.permalink);
+          await video.play();
+          video.removeEventListener('loadeddata', handleVideoLoaded);
+        };
+        video.addEventListener('loadeddata', handleVideoLoaded);
+        video.setAttribute('data-event-loadeddata', 'true');
+      }
+    }
+  }
 }
