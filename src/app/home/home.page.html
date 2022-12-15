@@ -1,7 +1,9 @@
 <ng-container *ngIf="vm$ | async as vm">
   <ion-header>
     <ion-toolbar>
-      <ion-title> Home </ion-title>
+      <app-search-bar
+        [subredditFormControl]="subredditFormControl"
+      ></app-search-bar>
     </ion-toolbar>
   </ion-header>
 

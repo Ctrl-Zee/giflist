@@ -10,6 +10,10 @@ const routes: Routes = [
   {
     path: 'gif-list',
     loadChildren: () => import('./ui/gif-list/gif-list.module').then( m => m.GifListPageModule)
+  },
+  {
+    path: 'search-bar',
+    loadChildren: () => import('./ui/search-bar/search-bar.module').then( m => m.SearchBarPageModule)
   }
 ];
 

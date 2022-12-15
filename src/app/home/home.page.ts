@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { FormControl } from '@angular/forms';
 import { BehaviorSubject, combineLatest, map, startWith } from 'rxjs';
 import { RedditService } from '../shared/data-access/reddit.service';
 import { Gif } from '../shared/interfaces';
@@ -13,8 +14,11 @@ export class HomePage {
   currentlyLoadingGifs$ = new BehaviorSubject<string[]>([]);
   loadedGifs$ = new BehaviorSubject<string[]>([]);
 
+  subredditFormControl = new FormControl('gifs');
+
+  // Combine the stream of gifs with the streams determining their loading status
   gifs$ = combineLatest([
-    this.redditService.getGifs(),
+    this.redditService.getGifs(this.subredditFormControl),
     this.currentlyLoadingGifs$,
     this.loadedGifs$,
   ]).pipe(
