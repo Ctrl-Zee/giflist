@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { BehaviorSubject, combineLatest, map } from 'rxjs';
+import { BehaviorSubject, combineLatest, map, startWith } from 'rxjs';
 import { RedditService } from '../shared/data-access/reddit.service';
+import { Gif } from '../shared/interfaces';
 
 @Component({
   selector: 'app-home',
@@ -26,6 +27,12 @@ export class HomePage {
     )
   );
 
+  vm$ = combineLatest([this.gifs$.pipe(startWith([]))]).pipe(
+    map(([gifs]) => ({
+      gifs,
+    }))
+  );
+
   constructor(private redditService: RedditService) {}
 
   setLoading(permalink: string) {
@@ -43,5 +50,9 @@ export class HomePage {
         (permalink) => !this.loadedGifs$.value.includes(permalink)
       ),
     ]);
+  }
+
+  loadMore(ev: Event, currentGifs: Gif[]) {
+    this.redditService.nextPage(ev, currentGifs[currentGifs.length - 1].name);
   }
 }

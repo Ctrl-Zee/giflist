@@ -1,14 +1,26 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title> Home </ion-title>
-  </ion-toolbar>
-</ion-header>
+<ng-container *ngIf="vm$ | async as vm">
+  <ion-header>
+    <ion-toolbar>
+      <ion-title> Home </ion-title>
+    </ion-toolbar>
+  </ion-header>
 
-<ion-content [fullscreen]="true">
-  <app-gif-list
-    *ngIf="gifs$ | async as gifs"
-    [gifs]="gifs"
-    (gifLoadStart)="setLoading($event)"
-    (gifLoadComplete)="setLoadingComplete($event)"
-  ></app-gif-list>
-</ion-content>
+  <ion-content>
+    <app-gif-list
+      *ngIf="vm.gifs"
+      [gifs]="vm.gifs"
+      (gifLoadStart)="setLoading($event)"
+      (gifLoadComplete)="setLoadingComplete($event)"
+    ></app-gif-list>
+    <ion-infinite-scroll
+      threshold="100px"
+      (ionInfinite)="loadMore($event, vm.gifs)"
+    >
+      <ion-infinite-scroll-content
+        loadingSpinner="bubbles"
+        loadingText="Fetching gifs..."
+      >
+      </ion-infinite-scroll-content>
+    </ion-infinite-scroll>
+  </ion-content>
+</ng-container>
