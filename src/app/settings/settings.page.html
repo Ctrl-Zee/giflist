@@ -1,0 +1,15 @@
+<ion-header>
+  <ion-toolbar color="light">
+    <ion-buttons slot="end">
+      <ion-button (click)="popoverCtrl.dismiss()">
+        <ion-icon slot="icon-only" name="close"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+<ion-content class="ion-padding">
+  <app-setting-form
+    [settingsForm]="settingsForm"
+    (save)="handleSave()"
+  ></app-setting-form>
+</ion-content>

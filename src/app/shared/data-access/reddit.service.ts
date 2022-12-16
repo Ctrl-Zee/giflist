@@ -4,10 +4,12 @@ import { FormControl } from '@angular/forms';
 import {
   BehaviorSubject,
   catchError,
+  combineLatest,
   concatMap,
   debounceTime,
   distinctUntilChanged,
   EMPTY,
+  expand,
   map,
   of,
   scan,
@@ -17,6 +19,7 @@ import {
 } from 'rxjs';
 import { RedditResponse, RedditPost } from '../interfaces';
 import { RedditPagination } from '../interfaces/reddit-pagination';
+import { SettingsService } from './settings.service';
 
 @Injectable({
   providedIn: 'root',
@@ -29,7 +32,12 @@ export class RedditService {
     infiniteScroll: null,
   });
 
-  constructor(private http: HttpClient) {}
+  private settings$ = this.settingsService.settings$;
+
+  constructor(
+    private http: HttpClient,
+    private settingsService: SettingsService
+  ) {}
 
   getGifs(subredditFormControl: FormControl) {
     // Start with a default emission of 'gifs', then only emit when
@@ -49,12 +57,51 @@ export class RedditService {
       )
     );
 
-    return subreddit$.pipe(
-      switchMap((subreddit) => {
+    return combineLatest([subreddit$, this.settings$]).pipe(
+      switchMap(([subreddit, settings]) => {
         // Fetch Gifs
         const gifsForCurrentPage$ = this.pagination$.pipe(
           concatMap((pagination) =>
-            this.fetchFromReddit(subreddit, 'hot', pagination.after)
+            this.fetchFromReddit(
+              subreddit,
+              settings.sort,
+              pagination.after,
+              settings.perPage
+            ).pipe(
+              // Keep retrying until we have enough valid gifs to fill a page
+              // 'expand' will keep repeating itself as long as it returns
+              // a non-empty observable
+              expand((res, index) => {
+                const validGifs = res.gifs.filter((gif) => gif.src !== null);
+                const gifsRequired = res.gifsRequired - validGifs.length;
+                const maxAttempts = 10;
+                // Keep trying if all criteria is met
+                // - we need more gifs to fill the page
+                // - we got at least one gif back from the API
+                // - we haven't exceeded the max retries
+                const shouldKeepTrying =
+                  gifsRequired > 0 && res.gifs.length && index < maxAttempts;
+                if (!shouldKeepTrying) {
+                  pagination.infiniteScroll?.complete();
+                }
+                return shouldKeepTrying
+                  ? this.fetchFromReddit(
+                      subreddit,
+                      settings.sort,
+                      res.gifs[res.gifs.length - 1].name,
+                      gifsRequired
+                    )
+                  : EMPTY; // Return an empty observable to stop retrying
+              })
+            )
+          ),
+          // Filter out any gifs without a src, and don't return more than the amount required
+          // NOTE: Even though expand will keep repeating, each result of expand will be passed
+          // here immediately without waiting for all expand calls to complete
+          map((res) =>
+            res.gifs
+              .filter((gif) => gif.src !== null)
+              .slice(0, res.gifsRequired)
           )
         );
         // Every time we get a new batch of gifs, add it to the cached gifs
@@ -69,7 +116,8 @@ export class RedditService {
   private fetchFromReddit(
     subreddit: string,
     sort: string,
-    after: string | null
+    after: string | null,
+    gifsRequired: number
   ) {
     return this.http
       .get<RedditResponse>(
@@ -81,7 +129,11 @@ export class RedditService {
         // This prevents the stream from breaking
         catchError(() => EMPTY),
         // Convert response into the gif format we need
-        map((res) => this.convertRedditPostsToGifs(res.data.children))
+        // AND keep track of how many gifs we want from the API
+        map((res) => ({
+          gifs: this.convertRedditPostsToGifs(res.data.children),
+          gifsRequired,
+        }))
       );
   }
 

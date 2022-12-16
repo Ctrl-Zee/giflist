@@ -16,6 +16,8 @@ export class HomePage {
 
   subredditFormControl = new FormControl('gifs');
 
+  settingsModalIsOpen$ = new BehaviorSubject<boolean>(false);
+
   // Combine the stream of gifs with the streams determining their loading status
   gifs$ = combineLatest([
     this.redditService.getGifs(this.subredditFormControl),
@@ -31,9 +33,13 @@ export class HomePage {
     )
   );
 
-  vm$ = combineLatest([this.gifs$.pipe(startWith([]))]).pipe(
-    map(([gifs]) => ({
+  vm$ = combineLatest([
+    this.gifs$.pipe(startWith([])),
+    this.settingsModalIsOpen$,
+  ]).pipe(
+    map(([gifs, modalIsOpen]) => ({
       gifs,
+      modalIsOpen,
     }))
   );
 

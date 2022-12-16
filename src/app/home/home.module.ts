@@ -7,6 +7,7 @@ import { HomePage } from './home.page';
 import { HomePageRoutingModule } from './home-routing.module';
 import { GifListPageModule } from './ui/gif-list/gif-list.module';
 import { SearchBarPageModule } from './ui/search-bar/search-bar.module';
+import { SettingsPageModule } from '../settings/settings.module';
 
 @NgModule({
   imports: [
@@ -16,6 +17,7 @@ import { SearchBarPageModule } from './ui/search-bar/search-bar.module';
     HomePageRoutingModule,
     GifListPageModule,
     SearchBarPageModule,
+    SettingsPageModule,
   ],
   declarations: [HomePage],
 })

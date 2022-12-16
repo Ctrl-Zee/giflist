@@ -1,9 +1,17 @@
 <ng-container *ngIf="vm$ | async as vm">
   <ion-header>
-    <ion-toolbar>
+    <ion-toolbar color="primary">
       <app-search-bar
         [subredditFormControl]="subredditFormControl"
       ></app-search-bar>
+      <ion-buttons slot="end">
+        <ion-button
+          id="settings-button"
+          (click)="settingsModalIsOpen$.next(true)"
+        >
+          <ion-icon slot="icon-only" name="settings"></ion-icon>
+        </ion-button>
+      </ion-buttons>
     </ion-toolbar>
   </ion-header>
 
@@ -24,5 +32,14 @@
       >
       </ion-infinite-scroll-content>
     </ion-infinite-scroll>
+    <ion-popover
+      trigger="settings-button"
+      [isOpen]="vm.modalIsOpen"
+      (ionPopoverDidDismiss)="settingsModalIsOpen$.next(false)"
+    >
+      <ng-template>
+        <app-settings></app-settings>
+      </ng-template>
+    </ion-popover>
   </ion-content>
 </ng-container>
