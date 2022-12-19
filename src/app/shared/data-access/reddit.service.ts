@@ -34,6 +34,8 @@ export class RedditService {
 
   private settings$ = this.settingsService.settings$;
 
+  isLoading$ = new BehaviorSubject(false);
+
   constructor(
     private http: HttpClient,
     private settingsService: SettingsService
@@ -83,6 +85,8 @@ export class RedditService {
                   gifsRequired > 0 && res.gifs.length && index < maxAttempts;
                 if (!shouldKeepTrying) {
                   pagination.infiniteScroll?.complete();
+                  this.isLoading$.next(false);
+                  pagination.infiniteScroll?.complete();
                 }
                 return shouldKeepTrying
                   ? this.fetchFromReddit(
@@ -102,7 +106,8 @@ export class RedditService {
             res.gifs
               .filter((gif) => gif.src !== null)
               .slice(0, res.gifsRequired)
-          )
+          ),
+          tap(() => this.isLoading$.next(true))
         );
         // Every time we get a new batch of gifs, add it to the cached gifs
         const allGifs$ = gifsForCurrentPage$.pipe(

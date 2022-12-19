@@ -1,6 +1,12 @@
 <ion-list lines="none">
   <div class="gif" *ngFor="let gif of gifs; trackBy: trackByFn">
     <ion-item button detail="false" (click)="playVideo($event, gif)">
+      <ion-list-header>
+        <ion-label> {{ gif.title }} </ion-label>
+        <ion-button (click)="showComments(gif)">
+          <ion-icon name="chatbubbles"></ion-icon> {{ gif.comments }}
+        </ion-button>
+      </ion-list-header>
       <ion-spinner color="light" *ngIf="gif.loading"></ion-spinner>
       <div
         [style.background]="
